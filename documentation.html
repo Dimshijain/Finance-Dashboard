@@ -1,0 +1,1369 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finance Dashboard &mdash; Documentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #060d18;
+      --surface:  #0b1628;
+      --surface2: #0f1f38;
+      --border:   #172d4e;
+      --text:     #f0f6ff;
+      --muted:    #7aa8cc;
+      --accent:   #00c2a8;
+      --income:   #00d4aa;
+      --expense:  #ff6b6b;
+      --gold:     #fbbf24;
+    }
+    [data-theme="light"] {
+      --bg:       #eef7ff;
+      --surface:  #ffffff;
+      --surface2: #daeef9;
+      --border:   #b0d8ef;
+      --text:     #0a1f32;
+      --muted:    #1a4a6e;
+      --accent:   #0098a0;
+      --income:   #00a882;
+      --expense:  #e84a4a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo span { font-size: 2rem; }
+    .sidebar-logo h2 { font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .sidebar-logo p  { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    [data-theme="light"] .nav-section { color: #5a6680; }
+
+    .nav-section { padding: 20px 24px 6px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 24px;
+      font-size: 0.875rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    [data-theme="light"] .nav-link { color: #1e293b; }
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent);
+      background: rgba(0,194,168,0.1);
+      border-right: 3px solid var(--accent);
+    }
+
+    .theme-btn {
+      margin: 20px 24px 0;
+      width: calc(100% - 48px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .theme-btn:hover { border-color: var(--accent); }
+
+    /* MAIN — fixed margin so sidebar never covers content */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 40px 60px 80px 60px;
+      transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .main > * {
+      width: 100%;
+      max-width: 960px;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #041022 0%, #071a36 45%, #003a50 100%);
+      border: 1px solid rgba(0,194,168,0.2);
+      border-radius: 16px;
+      padding: 48px 40px;
+      margin-bottom: 36px;
+      text-align: center;
+    }
+    [data-theme="light"] .hero { background: linear-gradient(135deg, #0a2540, #0d4060, #00637a); }
+    .hero-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    .hero h1  { font-size: 2rem; font-weight: 800; color: #fff; }
+    .hero p   { color: #5de0cc; margin-top: 10px; font-size: 1rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .hero-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .badge {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 16px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* SECTIONS */
+    .section { margin-bottom: 40px; scroll-margin-top: 24px; }
+    .section h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--surface2); color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    td:first-child { color: var(--text); font-weight: 500; width: 200px; }
+    td:last-child  { color: var(--text); font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+    /* TECH GRID */
+    .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .tech-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tech-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .tech-card:nth-child(1)::before { background: linear-gradient(90deg, #00d4aa, #00a882); }
+    .tech-card:nth-child(2)::before { background: linear-gradient(90deg, #38bdf8, #0284c7); }
+    .tech-card:nth-child(3)::before { background: linear-gradient(90deg, #00c2a8, #007a82); }
+    .tech-card:nth-child(4)::before { background: linear-gradient(90deg, #34d399, #059669); }
+    .tech-card:nth-child(5)::before { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .tech-card:nth-child(6)::before { background: linear-gradient(90deg, #60a5fa, #2563eb); }
+    .tech-card:nth-child(7)::before { background: linear-gradient(90deg, #f472b6, #db2777); }
+    .tech-card:nth-child(8)::before { background: linear-gradient(90deg, #2dd4bf, #0891b2); }
+    .tech-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .tech-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .tech-card p  { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+    /* FEATURE GRID */
+    .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .feature-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .feature-item.new-feature { border-color: var(--border); background: var(--surface); }
+    .feature-emoji { font-size: 1.4rem; flex-shrink: 0; }
+    .feature-item h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+    .feature-item p  { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .new-tag {
+      display: inline-block;
+      background: rgba(0,194,168,0.2);
+      color: var(--accent);
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 99px;
+      vertical-align: middle;
+      margin-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* FILE TREE */
+    .file-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 2;
+    }
+    .file-tree .folder  { color: var(--gold); font-weight: 700; }
+    .file-tree .file    { color: #2563eb; font-weight: 500; }
+    .file-tree .new-file{ color: #00a882; font-weight: 600; }
+    .file-tree .comment { color: var(--text); font-size: 0.82rem; }
+    [data-theme="dark"] .file-tree .file    { color: #7dd3fc; font-weight: 500; }
+    [data-theme="dark"] .file-tree .new-file{ color: #00d4aa; font-weight: 600; }
+    [data-theme="dark"] .file-tree .comment { color: #94a3b8; font-size: 0.82rem; }
+
+    /* FLOW */
+    .flow-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+    .flow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px 14px;
+      text-align: center;
+      position: relative;
+    }
+    .flow-step:not(:last-child)::after {
+      content: '\2192';
+      position: absolute;
+      right: -12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 1.2rem;
+      z-index: 1;
+    }
+    .flow-step:first-child { border-radius: 12px 0 0 12px; }
+    .flow-step:last-child  { border-radius: 0 12px 12px 0; }
+    .flow-num { background: var(--accent); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; margin: 0 auto 10px; }
+    .flow-step h4 { font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
+    .flow-step p  { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+    /* CODE BLOCK */
+    .code-block {
+      background: #041830;
+      border: 1px solid rgba(0,194,168,0.25);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+      color: #cce8f4;
+    }
+    [data-theme="light"] .code-block {
+      background: #e8f4fb;
+      border-color: rgba(0,152,160,0.3);
+      color: #0a2a3a;
+    }
+    .kw  { color: #5de0cc; font-weight: 600; }
+    .str { color: #fbbf24; }
+    .fn  { color: #38bdf8; font-weight: 600; }
+    .cm  { color: #7bafc9; font-style: italic; }
+    .num { color: #f472b6; }
+    [data-theme="light"] .kw  { color: #007a82; font-weight: 700; }
+    [data-theme="light"] .str { color: #b45309; }
+    [data-theme="light"] .fn  { color: #1d4ed8; font-weight: 700; }
+    [data-theme="light"] .cm  { color: #4a7a96; font-style: italic; }
+    [data-theme="light"] .num { color: #be185d; }
+
+    /* INFO BOX */
+    .info-box {
+      background: rgba(0,194,168,0.08);
+      border: 1px solid rgba(0,194,168,0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.87rem;
+      line-height: 1.6;
+      color: var(--text);
+      margin-top: 16px;
+    }
+    .info-box strong { color: var(--accent); }
+    .info-box.green { background: rgba(0,212,170,0.08); border-color: rgba(0,212,170,0.25); }
+    .info-box.green strong { color: #00d4aa; }
+
+    /* STORAGE */
+    .storage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .storage-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .storage-item code { font-family: 'Courier New', monospace; color: var(--accent); font-size: 0.82rem; background: rgba(0,194,168,0.1); padding: 2px 8px; border-radius: 4px; }
+    .storage-item p { font-size: 0.8rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+    /* SIDEBAR — overlay drawer, content never moves */
+    .sidebar {
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar.collapsed {
+      transform: translateX(-260px);
+    }
+
+    /* BACKDROP */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-backdrop.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    /* TOGGLE TAB — attached to sidebar right edge */
+    .sidebar-toggle {
+      position: fixed;
+      top: 50%;
+      left: 260px;
+      transform: translateY(-50%);
+      z-index: 200;
+      width: 18px;
+      height: 56px;
+      background: var(--accent);
+      border: none;
+      border-radius: 0 8px 8px 0;
+      color: #fff;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 3px 0 12px rgba(0,194,168,0.4);
+      transition: left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.2s;
+      writing-mode: horizontal-tb;
+    }
+    .sidebar-toggle:hover { background: var(--accent2); }
+    .sidebar-toggle.collapsed-btn { left: 0; border-radius: 0 8px 8px 0; }
+
+    /* FOOTER */
+    .doc-footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--surface);
+      z-index: 50;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<!-- BACKDROP -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR TOGGLE BUTTON -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Hide/Show sidebar">&#9664;</button>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span>&#128176;</span>
+    <div>
+      <h2>Finance Dashboard</h2>
+      <p>Project Documentation</p>
+    </div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-link active" onclick="scrollToSection(event,'overview')">&#128203; Project Overview</a>
+  <a class="nav-link" onclick="scrollToSection(event,'courses')">&#127775; Project Highlights</a>
+  <a class="nav-link" onclick="scrollToSection(event,'techstack')">&#128295; Tech Stack</a>
+  <a class="nav-link" onclick="scrollToSection(event,'files')">&#128193; File Structure</a>
+
+  <div class="nav-section">Features</div>
+  <a class="nav-link" onclick="scrollToSection(event,'features')">&#9889; All Features</a>
+  <a class="nav-link" onclick="scrollToSection(event,'charts')">&#128202; Charts &amp; Analytics</a>
+  <a class="nav-link" onclick="scrollToSection(event,'budget')">&#127919; Budget Goals</a>
+  <a class="nav-link" onclick="scrollToSection(event,'goalsSection')">&#127775; Savings Goals</a>
+  <a class="nav-link" onclick="scrollToSection(event,'reminders')">&#128276; Bill Reminders</a>
+  <a class="nav-link" onclick="scrollToSection(event,'emiSection')">&#129518; EMI Calculator</a>
+
+  <div class="nav-section">AI Features</div>
+  <a class="nav-link" onclick="scrollToSection(event,'ruleAnalyzer')">&#9878; Smart Budget Analyzer</a>
+  <a class="nav-link" onclick="scrollToSection(event,'aiPredict')">&#129302; AI Prediction</a>
+  <a class="nav-link" onclick="scrollToSection(event,'autoCat')">&#128161; Auto-Category</a>
+
+  <a class="nav-link" onclick="scrollToSection(event,'storage')">&#128190; Data Persistence</a>
+
+  <div class="nav-section">Technical</div>
+  <a class="nav-link" onclick="scrollToSection(event,'howitworks')">&#9881; How It Works</a>
+  <a class="nav-link" onclick="scrollToSection(event,'code')">&#128187; Key Code Logic</a>
+  <a class="nav-link" onclick="scrollToSection(event,'security')">&#128274; Security</a>
+  <a class="nav-link" onclick="scrollToSection(event,'run')">&#9654; How to Run</a>
+  <a class="nav-link" onclick="scrollToSection(event,'usecases')">&#127775; Use Cases</a>
+  <a class="nav-link" onclick="scrollToSection(event,'future')">&#128640; Future Scope</a>
+
+  <button class="theme-btn" id="docThemeBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
+  <a class="theme-btn" href="index.html" style="margin-top:10px;text-align:center;text-decoration:none;display:block;color:var(--text);">&larr; Back to Dashboard</a>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-icon">&#128176;</div>
+    <h1>Personal Finance Dashboard</h1>
+    <p>A full-featured, browser-based personal finance app &mdash; track income, expenses, budgets &amp; bills with smart insights, charts, CSV import/export, and PWA offline support. Zero backend required.</p>
+    <div class="hero-badges">
+      <span class="badge">HTML5</span>
+      <span class="badge">CSS3</span>
+      <span class="badge">Vanilla JS</span>
+      <span class="badge">Chart.js</span>
+      <span class="badge">localStorage</span>
+      <span class="badge">PWA</span>
+      <span class="badge">Service Worker</span>
+      <span class="badge">No Backend</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section class="section" id="overview">
+    <h2>&#128203; Project Overview</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Field</th><th>Details</th></tr>
+        <tr><td>Project Name</td><td>Personal Finance Dashboard</td></tr>
+        <tr><td>Type</td><td>Frontend Web Application (PWA)</td></tr>
+        <tr><td>Purpose</td><td>Track income, expenses, budgets, and bills with full CRUD + analytics</td></tr>
+        <tr><td>Tech Stack</td><td>HTML5, CSS3, Vanilla JavaScript ES6+, Chart.js, Service Worker</td></tr>
+        <tr><td>Data Storage</td><td>Browser localStorage &mdash; 6 keys (transactions, budgets, categories, reminders, goals, theme)</td></tr>
+        <tr><td>Total Features</td><td>32 features &mdash; CRUD, 4 charts, health score, budget goals, savings goals, bill reminders, EMI calculator, sort &amp; filter, smart insights with AI prediction, smart budget analysis, auto-category detection, CSV import/export, PWA, theme persistence, and more</td></tr>
+        <tr><td>Charts</td><td>4 &mdash; Doughnut, Bar, Pie, Balance Trend (Line)</td></tr>
+        <tr><td>Development Style</td><td>Vibe Coding (AI-assisted rapid prototyping)</td></tr>
+        <tr><td>Developer</td><td>Vibe Coding Project</td></tr>
+        <tr><td>Built In</td><td>May 2026</td></tr>
+        <tr><td>Platform</td><td>Any modern browser &mdash; installable as PWA on mobile/desktop</td></tr>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>Why this project?</strong> Managing personal finances is a universal need. This app demonstrates real-world frontend engineering &mdash; responsive UI, data visualization, full CRUD operations, import/export, PWA installation, and state management. A <strong>deliberately client-side architecture</strong> was chosen: financial data is sensitive, so it stays entirely in the user&rsquo;s browser &mdash; no server, no data collection, no privacy risk.
+    </div>
+  </section>
+
+  <!-- PROJECT HIGHLIGHTS -->
+  <section class="section" id="courses">
+    <h2>&#127775; Project Highlights</h2>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">A production-ready finance app built on <strong>intentional simplicity</strong> &mdash; pure HTML, CSS, and JavaScript, with Chart.js as the only external dependency. A conscious design decision to demonstrate that strong fundamentals outperform framework dependency.</p>
+    <div class="tech-grid">
+      <div class="tech-card" style="border-color:rgba(0,194,168,0.4)">
+        <div class="tech-icon">&#128736;</div>
+        <h4 style="color:#00d4aa">Clean Architecture</h4>
+        <p style="margin-bottom:10px;color:var(--muted)">Structured like a real-world app:</p>
+        <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:16px">
+          <li>SDLC followed &mdash; Plan &rarr; Design &rarr; Build &rarr; Test</li>
+          <li>Modular files &mdash; HTML, CSS, JS, manifest, Service Worker</li>
+          <li>Full CRUD &mdash; Create, Read, Update, Delete transactions</li>
+          <li>Single responsibility per function &mdash; clean, readable code</li>
+          <li>Input validation at every form boundary</li>
+        </ul>
+      </div>
+      <div class="tech-card" style="border-color:rgba(56,189,248,0.4)">
+        <div class="tech-icon">&#128737;&#65039;</div>
+        <h4 style="color:#38bdf8">Security &amp; Privacy First</h4>
+        <p style="margin-bottom:10px;color:var(--muted)">Built with ethical, secure practices:</p>
+        <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:16px">
+          <li>XSS protection &mdash; escapeHtml() on all user inputs</li>
+          <li>100% offline &mdash; all data stays in localStorage</li>
+          <li>No tracking, no analytics, no third-party calls</li>
+          <li>No login required &mdash; zero data collection</li>
+          <li>AI-assisted development using GitHub Copilot responsibly</li>
+        </ul>
+      </div>
+      <div class="tech-card" style="border-color:rgba(251,191,36,0.4)">
+        <div class="tech-icon">&#128640;</div>
+        <h4 style="color:#fbbf24">Modern Web APIs</h4>
+        <p style="margin-bottom:10px;color:var(--muted)">Uses the full power of the browser:</p>
+        <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:16px">
+          <li>Chart.js &mdash; 4 real-time interactive charts</li>
+          <li>PWA &mdash; manifest.json + Service Worker for offline use</li>
+          <li>FileReader &amp; Blob APIs &mdash; CSV import &amp; export</li>
+          <li>Notification API &mdash; bill due date reminders</li>
+          <li>localStorage &mdash; offline-first, privacy-first persistent data</li>
+        </ul>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:16px">
+      <strong>Bottom line:</strong> This project demonstrates that with strong fundamentals &mdash; clean architecture, security awareness, and modern browser APIs &mdash; you can ship a product that rivals paid fintech tools. The absence of a framework is not a limitation &mdash; it&rsquo;s proof that the developer understands how the web actually works.
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="section" id="techstack">
+    <h2>&#128295; Tech Stack</h2>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">&#127760;</div>
+        <h4>HTML5</h4>
+        <p>Semantic structure, accessible forms, canvas elements for charts, modal overlays, and responsive meta tags.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#127912;</div>
+        <h4>CSS3</h4>
+        <p>CSS Variables for dark/light themes, Grid &amp; Flexbox layouts, keyframe animations, print stylesheets, modal transitions.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#9881;</div>
+        <h4>Vanilla JavaScript ES6+</h4>
+        <p>Arrow functions, destructuring, spread operator, template literals, array methods (filter, reduce, map, sort).</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#128202;</div>
+        <h4>Chart.js</h4>
+        <p>4 chart types &mdash; Doughnut, Bar, Pie, and Line. Real-time updates on every transaction add/edit/delete.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#128190;</div>
+        <h4>localStorage API</h4>
+        <p>6 persistent keys &mdash; transactions, budget limits, custom categories, reminders, savings goals, and theme. Survives page refresh and browser restart.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#128229;</div>
+        <h4>Blob + FileReader API</h4>
+        <p>CSV export using Blob/URL.createObjectURL and CSV import using FileReader &mdash; all browser-native, no libraries.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#128241;</div>
+        <h4>PWA &mdash; Service Worker</h4>
+        <p>manifest.json enables home screen installation. sw.js caches all assets for offline access using Cache API.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">&#128276;</div>
+        <h4>Notifications API</h4>
+        <p>Browser push notifications for overdue bill reminders &mdash; requests permission and fires native OS notifications.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILE STRUCTURE -->
+  <section class="section" id="files">
+    <h2>&#128193; File Structure</h2>
+    <div class="file-tree">
+      <div class="folder">&#128193; finance-dashboard/</div>
+      <div style="margin-left:24px">
+        <div><span class="file">&#128196; index.html</span> <span class="comment">&mdash; Main UI: header, cards, 4 charts, health score, budget, reminders, form, history, modals</span></div>
+        <div><span class="file">&#127912; style.css</span> <span class="comment">&mdash; All styling: dark/light theme, modals, reminders, date filters, print styles</span></div>
+        <div><span class="file">&#9881; script.js</span> <span class="comment">&mdash; All logic: CRUD, 4 charts, insights, health score, import/export, reminders, categories</span></div>
+        <div><span class="file">&#128216; documentation.html</span> <span class="comment">&mdash; This file &mdash; full project documentation</span></div>
+        <div><span class="new-file">&#128203; manifest.json</span> <span class="comment">&mdash; NEW: PWA manifest: name, icons, theme color, display mode (standalone)</span></div>
+        <div><span class="new-file">&#128295; sw.js</span> <span class="comment">&mdash; NEW: Service Worker: caches all assets for offline use, intercepts fetch events</span></div>
+      </div>
+    </div>
+    <div class="info-box green" style="margin-top:14px">
+      <strong>PWA files:</strong> manifest.json and sw.js enable PWA functionality &mdash; the app can be installed on Android/iOS/Desktop as a standalone app and works offline.
+    </div>
+  </section>
+
+  <!-- ALL FEATURES -->
+  <section class="section" id="features">
+    <h2>&#9889; All Features</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:18px;">Smart dropdowns, EMI calculator, sort controls, and persistent theme make this a complete personal finance tool.</p>
+    <div class="feature-grid">
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128179;</span>
+        <div>
+          <h4>Add Transactions</h4>
+          <p>Add income or expense with a smart description dropdown (auto-switches options for income vs expense), amount, category, date, optional notes, and recurring flag. Custom option available for any description not in the list.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128465;</span>
+        <div>
+          <h4>Delete Transactions</h4>
+          <p>Remove any transaction instantly. All charts, summary cards, and budget bars recalculate in real-time.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#9999;</span>
+        <div>
+          <h4>Edit Transactions</h4>
+          <p>Click the edit button on any transaction to open a modal. All fields are editable: description, amount, type, category, date, notes, and recurring flag.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128202;</span>
+        <div>
+          <h4>Live Charts (4 types)</h4>
+          <p>Doughnut (income vs expense), Bar (6-month trend), Pie (expense categories), Line (running balance). All update instantly on every change.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128176;</span>
+        <div>
+          <h4>Summary Cards</h4>
+          <p>Total Income, Total Expenses, Net Balance, and Savings Rate &mdash; calculated live with count-up animation (ease-out cubic, 800ms).</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#127942;</span>
+        <div>
+          <h4>Financial Health Score</h4>
+          <p>0&ndash;100 score from savings rate (40pts), budget adherence (30pts), income presence (15pts), transaction count (15pts). Color-coded: red / yellow / teal / green tiers.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#127919;</span>
+        <div>
+          <h4>Editable Budget Goals</h4>
+          <p>Monthly budget limits are user-editable &mdash; click any limit amount to change it. Stored in localStorage. Progress bars: green &rarr; yellow (70%) &rarr; red (90%).</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#127775;</span>
+        <div>
+          <h4>Savings Goals</h4>
+          <p>Set named savings goals with a target amount and optional deadline. Progress bar shows how much of your net balance is allocated. Smart badges: On Track, Behind, Achieved, or Overdue — calculated from your daily savings rate.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128302;</span>
+        <div>
+          <h4>Month-end Forecast</h4>
+          <p>Smart Insights automatically calculates your projected month-end spending based on daily average. Shows daily average spend and color-coded alert (green / yellow / red) vs your income.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128276;</span>
+        <div>
+          <h4>Bill Reminders</h4>
+          <p>Set upcoming bill reminders using a dropdown picker (Electricity, Water, Gas, Internet, Rent, etc.) with a Custom option. Add amount and due date. Badges show urgency: upcoming / urgent / overdue / done. Browser Notifications API fires OS alerts for due bills.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#129302;</span>
+        <div>
+          <h4>Smart Insights</h4>
+          <p>AI-style rule engine generates up to 8 insight cards: savings rate, spending trend vs last month, top expense category, budget warnings, balance health, month-end forecast, smart budget analysis (Needs/Wants/Savings), and 3-month rolling expense prediction.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128197;</span>
+        <div>
+          <h4>Date Range Filter</h4>
+          <p>Filter transaction history by: All, Today, This Week, This Month, Last Month, or Custom date range (from&ndash;to). One-click presets above the history list.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128269;</span>
+        <div>
+          <h4>Search &amp; Type Filter</h4>
+          <p>Live search by description or category. Filter by type (All / Income / Expense). Count updates dynamically in the header.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128260;</span>
+        <div>
+          <h4>Recurring Transactions</h4>
+          <p>Mark any transaction as Recurring &mdash; it auto-adds for the current month if not already present. Recurring entries show a badge in transaction history.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128221;</span>
+        <div>
+          <h4>Transaction Notes</h4>
+          <p>Optional notes field on each transaction &mdash; e.g. "Udemy sale", "Doctor visit". Notes display as italic text under the category in transaction history.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128198;</span>
+        <div>
+          <h4>Monthly Summary Table</h4>
+          <p>Last 6 months &mdash; Income, Expenses, Savings, and Savings Rate with color-coded pills (green &ge;30%, yellow &ge;10%, red below).</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128197;</span>
+        <div>
+          <h4>Yearly Summary View</h4>
+          <p>Toggle between Monthly and Yearly views. Yearly mode aggregates all transactions per calendar year &mdash; perfect for annual financial review.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#9881;</span>
+        <div>
+          <h4>Custom Categories</h4>
+          <p>Add or remove income/expense categories via the Categories modal. Custom categories persist in localStorage. Default categories cannot be deleted for safety.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128229;</span>
+        <div>
+          <h4>Export to CSV</h4>
+          <p>Download all transactions as a .csv file &mdash; now includes Notes and Recurring columns. All values quoted to handle commas in descriptions.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128228;</span>
+        <div>
+          <h4>Import from CSV</h4>
+          <p>Upload a previously exported CSV file to restore data. Custom CSV parser handles quoted fields. Validates each row &mdash; skips invalid entries, shows import count in toast.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128424;</span>
+        <div>
+          <h4>Print / PDF Export</h4>
+          <p>Print button triggers browser print dialog. Print CSS hides action buttons, forms, and reminders &mdash; produces a clean, professional financial report layout.</p>
+        </div>
+      </div>
+
+      <div class="feature-item new-feature">
+        <span class="feature-emoji">&#128241;</span>
+        <div>
+          <h4>PWA &mdash; Install on Device</h4>
+          <p>manifest.json + sw.js make this a Progressive Web App. Install on Android home screen, iOS, or Windows desktop. Works fully offline &mdash; all assets cached by Service Worker.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#127769;</span>
+        <div>
+          <h4>Dark / Light Mode</h4>
+          <p>Toggle between dark and light themes. Charts re-render automatically with correct text/grid colors for the active theme. Preference is saved to localStorage &mdash; survives refresh.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#9651;</span>
+        <div>
+          <h4>Sort Transactions</h4>
+          <p>Sort transaction history by Newest, Oldest, Highest Amount, or Lowest Amount using the sort dropdown in the history header. Works in combination with search and date filters.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#129518;</span>
+        <div>
+          <h4>EMI Calculator</h4>
+          <p>Standalone EMI calculator accessible from the header. Enter loan amount, annual interest rate, and tenure in months &mdash; instantly calculates monthly EMI, total payable, and total interest using the standard compound interest formula.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#10004;</span>
+        <div>
+          <h4>Toast Notifications</h4>
+          <p>Green toast for add/edit/import, custom messages for all user actions. Appears for 2.5 seconds &mdash; consistent feedback for every operation.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128190;</span>
+        <div>
+          <h4>Persistent Storage</h4>
+          <p>5 localStorage keys save all state &mdash; transactions, custom budgets, categories, reminders, and savings goals. Theme preference also persisted. All data survives refresh, tab close, and browser restart.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#10024;</span>
+        <div>
+          <h4>Sample Data Loader</h4>
+          <p>One-click demo &mdash; loads 14 realistic transactions with notes and recurring flags across 2 months. All features instantly visible without manual entry.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#9878;</span>
+        <div>
+          <h4>Smart Budget Analyzer</h4>
+          <p>Smart Insights automatically categorizes your spending into Needs (Rent, Food, Health, Bills), Wants (Entertainment, Shopping, Transport), and Savings &mdash; then compares against the gold-standard 50/30/20 budgeting rule with a color-coded verdict.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#129302;</span>
+        <div>
+          <h4>AI Next Month Prediction</h4>
+          <p>Uses a 3-month rolling average of your expense history to predict next month's spending. Flags as green, yellow, or red vs your income. Shown automatically in Smart Insights once 2+ months of data exist.</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <span class="feature-emoji">&#128161;</span>
+        <div>
+          <h4>Smart Auto-Category Detection</h4>
+          <p>When typing a custom transaction description, the app uses a keyword AI engine to automatically detect and select the right category. Keywords like "Zomato", "Uber", "Netflix", "Amazon" map to Food, Transport, Entertainment, Shopping instantly.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="section" id="charts">
+    <h2>&#128202; Charts &amp; Analytics</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Chart</th><th>Type</th><th>What it shows</th><th>Updates when</th></tr>
+        <tr><td>Income vs Expense</td><td>Doughnut</td><td>Proportion of total income vs total expenses</td><td>Any transaction added/edited/deleted</td></tr>
+        <tr><td>Monthly Trend</td><td>Bar</td><td>Last 6 months income &amp; expense side-by-side</td><td>Any transaction added/edited/deleted</td></tr>
+        <tr><td>Category Breakdown</td><td>Pie</td><td>Expense split across all categories</td><td>Any expense transaction changes</td></tr>
+        <tr><td>Balance Trend</td><td>Line</td><td>Running balance over time (cumulative)</td><td>Any transaction added/edited/deleted</td></tr>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>Balance Trend Chart:</strong> Transactions are sorted by date, then a running total is calculated (income adds, expense subtracts). This shows whether your overall wealth is growing or declining over time &mdash; the most important financial chart.
+    </div>
+  </section>
+
+  <!-- BUDGET -->
+  <section class="section" id="budget">
+    <h2>&#127919; Budget Goals</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Default monthly budget limits per expense category. Users can click any limit to edit it &mdash; stored in localStorage permanently.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Category</th><th>Default Limit</th><th>Warning (70%)</th><th>Danger (90%)</th><th>Editable?</th></tr>
+        <tr><td>Food</td><td>₹8,000</td><td>₹5,600</td><td>₹7,200</td><td>Yes</td></tr>
+        <tr><td>Transport</td><td>₹4,000</td><td>₹2,800</td><td>₹3,600</td><td>Yes</td></tr>
+        <tr><td>Shopping</td><td>₹6,000</td><td>₹4,200</td><td>₹5,400</td><td>Yes</td></tr>
+        <tr><td>Entertainment</td><td>₹3,000</td><td>₹2,100</td><td>₹2,700</td><td>Yes</td></tr>
+        <tr><td>Health</td><td>₹5,000</td><td>₹3,500</td><td>₹4,500</td><td>Yes</td></tr>
+        <tr><td>Education</td><td>₹10,000</td><td>₹7,000</td><td>₹9,000</td><td>Yes</td></tr>
+        <tr><td>Bills &amp; Utilities</td><td>₹4,000</td><td>₹2,800</td><td>₹3,600</td><td>Yes</td></tr>
+        <tr><td>Rent</td><td>₹15,000</td><td>₹10,500</td><td>₹13,500</td><td>Yes</td></tr>
+        <tr><td>Other</td><td>₹3,000</td><td>₹2,100</td><td>₹2,700</td><td>Yes</td></tr>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>How to edit:</strong> Click on any budget amount shown in the Budget Goals section on the dashboard. A browser prompt appears to enter the new limit. The change is saved to localStorage immediately and persists across sessions.
+    </div>
+  </section>
+
+  <!-- SAVINGS GOALS -->
+  <section class="section" id="goalsSection">
+    <h2>&#127775; Savings Goals</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Set named savings goals and track progress automatically from your net balance. Each goal gets a proportional share of your current savings.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Badge</th><th>Meaning</th><th>Logic</th></tr>
+        <tr><td>&#9989; Achieved</td><td>Goal reached</td><td>Saved amount &ge; target</td></tr>
+        <tr><td>&#128994; On Track</td><td>Meeting required daily savings pace</td><td>Daily savings rate &ge; required rate to hit goal by deadline</td></tr>
+        <tr><td>&#128993; Behind</td><td>Not saving fast enough</td><td>Daily savings rate &lt; required rate</td></tr>
+        <tr><td>&#9200; Overdue</td><td>Deadline passed, goal not met</td><td>Today &gt; deadline and pct &lt; 100%</td></tr>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>How progress is calculated:</strong> Your net balance (total income &minus; total expenses) is distributed across all goals proportionally by target size. The more you save overall, the more all goals advance simultaneously.
+    </div>
+  </section>
+
+  <!-- REMINDERS -->
+  <section class="section" id="reminders">
+    <h2>&#128276; Bill Reminders</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Set upcoming bill reminders so you never miss a payment. Stored in localStorage with due date tracking.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Status</th><th>Badge Color</th><th>Condition</th></tr>
+        <tr><td>Upcoming</td><td>Teal</td><td>Due date is more than 3 days away</td></tr>
+        <tr><td>Urgent</td><td>Yellow/Orange</td><td>Due in 1&ndash;3 days</td></tr>
+        <tr><td>Today!</td><td>Yellow</td><td>Due today</td></tr>
+        <tr><td>Overdue</td><td>Red</td><td>Due date has passed</td></tr>
+        <tr><td>Done</td><td>Green</td><td>Marked as completed</td></tr>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>Browser Notifications:</strong> On page load, if any reminder is due or overdue, the app requests browser notification permission and fires a native OS notification &mdash; works on Windows, macOS, and Android.
+    </div>
+  </section>
+
+  <!-- EMI CALCULATOR -->
+  <section class="section" id="emiSection">
+    <h2>&#129518; EMI Calculator</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">A standalone loan EMI calculator built into the dashboard &mdash; no data is saved, purely a calculation tool.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Input</th><th>Description</th></tr>
+        <tr><td>Loan Amount (₹)</td><td>Principal amount of the loan</td></tr>
+        <tr><td>Annual Interest Rate (%)</td><td>Interest rate per year (e.g. 8.5)</td></tr>
+        <tr><td>Tenure (Months)</td><td>Repayment period in months (e.g. 24 = 2 years)</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:12px">
+      <table>
+        <tr><th>Output</th><th>Description</th></tr>
+        <tr><td>Monthly EMI</td><td>Fixed amount to pay every month</td></tr>
+        <tr><td>Total Payable</td><td>EMI &times; Tenure (principal + interest)</td></tr>
+        <tr><td>Total Interest</td><td>Total Payable &minus; Loan Amount</td></tr>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top:14px">
+      <strong>Formula:</strong> EMI = P &times; r &times; (1+r)<sup>n</sup> / ((1+r)<sup>n</sup> &minus; 1) &nbsp; where P = principal, r = monthly interest rate, n = tenure months. Calculated live as you type &mdash; no submit button needed.
+    </div>
+  </section>
+
+  <!-- SMART BUDGET ANALYZER -->
+  <section class="section" id="ruleAnalyzer">
+    <h2>&#9878; Smart Budget Analyzer</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">Based on the gold-standard 50/30/20 budgeting framework &mdash; one of the most widely recommended personal finance rules. This dashboard automatically applies it to your live spending data with no manual setup needed.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Bucket</th><th>Target</th><th>Included Categories</th><th>Status Color</th></tr>
+        <tr><td>&#127968; Needs</td><td>&le; 50% of income</td><td>Rent, Food, Health, Bills &amp; Utilities, Education</td><td>Teal if on-track / Red if over</td></tr>
+        <tr><td>&#127894; Wants</td><td>&le; 30% of income</td><td>Entertainment, Shopping, Transport, Other</td><td>Teal if on-track / Red if over</td></tr>
+        <tr><td>&#128176; Savings</td><td>&ge; 20% of income</td><td>Net balance (income &minus; all expenses)</td><td>Green if on-track / Red if under</td></tr>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top:14px">
+      <strong>How the verdict works:</strong> Each bucket gets a real-time color-coded label. If all three buckets pass their target, the overall verdict is green. Shown automatically in the Smart Insights panel once income data exists &mdash; no setup required.
+    </div>
+  </section>
+
+  <!-- AI PREDICTION -->
+  <section class="section" id="aiPredict">
+    <h2>&#129302; AI Next Month Prediction</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">A 3-month rolling average model that predicts next month&rsquo;s total expenditure based on your recent spending history. No external API &mdash; 100% client-side.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Factor</th><th>Detail</th></tr>
+        <tr><td>Input Data</td><td>Expenses from the last 3 complete calendar months</td></tr>
+        <tr><td>Algorithm</td><td>Rolling average: (Month-1 + Month-2 + Month-3) &divide; count of months with data</td></tr>
+        <tr><td>Minimum Data</td><td>Requires at least 2 months of expense data &mdash; card hidden otherwise</td></tr>
+        <tr><td>Display</td><td>Predicted amount + percentage of income (green &lt;50%, yellow &lt;80%, red &ge;80%)</td></tr>
+        <tr><td>Edge Cases</td><td>Months with zero expenses are excluded from average to prevent skew</td></tr>
+        <tr><td>Updates</td><td>Recalculates on every transaction add/edit/delete</td></tr>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top:14px">
+      <strong>Why rolling average?</strong> It is simple, transparent, and requires no server. The 3-month window balances recency with stability &mdash; a one-month spike won&rsquo;t break the prediction. This is the same technique used by Excel forecasting and Power BI trend analysis.
+    </div>
+  </section>
+
+  <!-- AUTO-CATEGORY -->
+  <section class="section" id="autoCat">
+    <h2>&#128161; Smart Auto-Category Detection</h2>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:0.9rem">As you type a transaction description, the app scans it against a 40+ keyword engine and auto-selects the most likely category &mdash; saving time and reducing mis-categorization errors.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Keywords Detected</th><th>Auto-Selected Category</th></tr>
+        <tr><td>zomato, swiggy, blinkit, restaurant, pizza, dhaba, cafe, biryani, lunch, dinner</td><td>Food</td></tr>
+        <tr><td>uber, ola, petrol, diesel, metro, bus, auto, rickshaw, train, flight, taxi</td><td>Transport</td></tr>
+        <tr><td>netflix, hotstar, spotify, prime, youtube, movie, cinema, game, concert</td><td>Entertainment</td></tr>
+        <tr><td>amazon, flipkart, myntra, ajio, meesho, nykaa, shopping, clothes, shoes</td><td>Shopping</td></tr>
+        <tr><td>hospital, doctor, medicine, pharmacy, clinic, health, apollo, medplus</td><td>Health</td></tr>
+        <tr><td>electricity, water, wifi, broadband, gas, phone bill, jio, airtel</td><td>Bills &amp; Utilities</td></tr>
+        <tr><td>rent, landlord, pg, hostel, society</td><td>Rent</td></tr>
+        <tr><td>course, udemy, book, school, college, fees, tuition</td><td>Education</td></tr>
+        <tr><td>salary, freelance, bonus, stipend, dividend, interest received</td><td>Salary (Income)</td></tr>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top:14px">
+      <strong>How it triggers:</strong> Fires on every keystroke (<code>oninput</code> event). When a keyword match is found, the app automatically switches Type to <strong>Expense</strong> (if needed), refreshes the category dropdown, sets the matched category, and shows a toast: <em>&ldquo;&#129302; Category auto-detected: Food&rdquo;</em>. Description text is preserved across the type switch. No server call, zero latency &mdash; pure client-side JavaScript.
+    </div>
+  </section>
+
+  <!-- STORAGE -->
+  <section class="section" id="storage">
+    <h2>&#128190; Data Persistence</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:16px">All data is saved in the browser's localStorage under 6 separate keys:</p>
+    <div class="storage-grid">
+      <div class="storage-item">
+        <code>fin_transactions</code>
+        <p>Array of all transaction objects &mdash; description, amount, type, category, date, notes, recurring flag.</p>
+      </div>
+      <div class="storage-item">
+        <code>fin_budget_limits</code>
+        <p>Object mapping expense category &rarr; monthly budget limit. User-edited values override defaults.</p>
+      </div>
+      <div class="storage-item">
+        <code>fin_categories</code>
+        <p>Object with income[] and expense[] arrays of category names. Includes user-added custom categories.</p>
+      </div>
+      <div class="storage-item">
+        <code>fin_reminders</code>
+        <p>Array of reminder objects &mdash; title, amount, due date, and done status.</p>
+      </div>
+      <div class="storage-item">
+        <code>fin_goals</code>
+        <p>Array of savings goal objects &mdash; name, target amount, deadline, and creation date. Progress calculated from live net balance.</p>
+      </div>
+      <div class="storage-item">
+        <code>fin_theme</code>
+        <p>String &mdash; <code>light</code> or <code>dark</code>. Theme preference persists across page reloads automatically.</p>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:16px"><span class="cm">// Loading all state on startup</span>
+<span class="kw">let</span> transactions  = JSON.<span class="fn">parse</span>(localStorage.<span class="fn">getItem</span>(<span class="str">'fin_transactions'</span>)  || <span class="str">'[]'</span>);
+<span class="kw">let</span> customBudgets = JSON.<span class="fn">parse</span>(localStorage.<span class="fn">getItem</span>(<span class="str">'fin_budget_limits'</span>) || <span class="str">'null'</span>) || { ...DEFAULT_BUDGET_LIMITS };
+<span class="kw">let</span> customCats    = JSON.<span class="fn">parse</span>(localStorage.<span class="fn">getItem</span>(<span class="str">'fin_categories'</span>)    || <span class="str">'null'</span>) || { income: [...DEFAULT_CATEGORIES.income], expense: [...DEFAULT_CATEGORIES.expense] };
+<span class="kw">let</span> reminders     = JSON.<span class="fn">parse</span>(localStorage.<span class="fn">getItem</span>(<span class="str">'fin_reminders'</span>)     || <span class="str">'[]'</span>);</div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="howitworks">
+    <h2>&#9881; How It Works</h2>
+    <div class="flow-grid">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <h4>User Input</h4>
+        <p>Fill form: description, amount, type, category, date, notes, recurring flag</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <h4>JS Processes</h4>
+        <p>addTransaction() creates object, unshift to array, saveData() to localStorage</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <h4>renderAll()</h4>
+        <p>Calls render functions for cards, health score, 4 charts, insights, budget, reminders, history</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <h4>DOM Updates</h4>
+        <p>All UI sections update simultaneously &mdash; animations play, charts redraw</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <h4>Persists</h4>
+        <p>localStorage stores JSON &mdash; available on next browser open, even offline via PWA</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY CODE -->
+  <section class="section" id="code">
+    <h2>&#128187; Key Code Logic</h2>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px">Transaction data structure:</p>
+    <div class="code-block"><span class="kw">const</span> txn = {
+  id:        Date.<span class="fn">now</span>(),          <span class="cm">// unique numeric ID</span>
+  desc:      <span class="str">"Monthly Salary"</span>,   <span class="cm">// description (XSS-escaped on render)</span>
+  amount:    <span class="num">55000</span>,              <span class="cm">// positive number</span>
+  type:      <span class="str">"income"</span>,           <span class="cm">// 'income' | 'expense'</span>
+  category:  <span class="str">"Salary"</span>,           <span class="cm">// from customCats (user-editable)</span>
+  date:      <span class="str">"2026-05-01"</span>,       <span class="cm">// ISO date string YYYY-MM-DD</span>
+  notes:     <span class="str">"Regular monthly"</span>,  <span class="cm">// optional &mdash; empty string if none</span>
+  recurring: <span class="kw">true</span>               <span class="cm">// auto-adds every month if true</span>
+};</div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">Financial Health Score algorithm:</p>
+    <div class="code-block"><span class="cm">// Component 1: Savings rate (max 40 pts)</span>
+<span class="kw">if</span> (rate &gt;= <span class="num">30</span>) score += <span class="num">40</span>;
+<span class="kw">else if</span> (rate &gt;= <span class="num">20</span>) score += <span class="num">30</span>;
+<span class="kw">else if</span> (rate &gt;= <span class="num">10</span>) score += <span class="num">20</span>;
+<span class="kw">else if</span> (rate &gt; <span class="num">0</span>)  score += <span class="num">10</span>;
+
+<span class="cm">// Component 2: Budget adherence (max 30 pts)</span>
+<span class="kw">const</span> adherence = (totalCats - overBudgetCount) / totalCats;
+score += Math.<span class="fn">round</span>(adherence * <span class="num">30</span>);
+
+<span class="cm">// Component 3: Has income recorded (15 pts)</span>
+<span class="kw">if</span> (income &gt; <span class="num">0</span>) score += <span class="num">15</span>;
+
+<span class="cm">// Component 4: Transaction count (max 15 pts)</span>
+<span class="kw">if</span> (count &gt;= <span class="num">20</span>) score += <span class="num">15</span>;
+<span class="kw">else if</span> (count &gt;= <span class="num">10</span>) score += <span class="num">10</span>;
+<span class="kw">else if</span> (count &gt;= <span class="num">5</span>) score += <span class="num">5</span>;</div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">CSV Import &mdash; custom parser (handles quoted fields):</p>
+    <div class="code-block"><span class="kw">function</span> <span class="fn">parseCSVLine</span>(line) {
+  <span class="kw">const</span> result = []; <span class="kw">let</span> cur = <span class="str">''</span>; <span class="kw">let</span> inQ = <span class="kw">false</span>;
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; line.length; i++) {
+    <span class="kw">if</span> (line[i] === <span class="str">'"'</span>)             { inQ = !inQ; }
+    <span class="kw">else if</span> (line[i] === <span class="str">','</span> &amp;&amp; !inQ) { result.<span class="fn">push</span>(cur); cur = <span class="str">''</span>; }
+    <span class="kw">else</span>                              { cur += line[i]; }
+  }
+  result.<span class="fn">push</span>(cur);
+  <span class="kw">return</span> result;
+}</div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">Service Worker &mdash; offline caching strategy:</p>
+    <div class="code-block"><span class="kw">const</span> CACHE = <span class="str">'finance-v1'</span>;
+<span class="kw">const</span> ASSETS = [<span class="str">'/'</span>, <span class="str">'/index.html'</span>, <span class="str">'/style.css'</span>, <span class="str">'/script.js'</span>];
+
+self.<span class="fn">addEventListener</span>(<span class="str">'install'</span>, e =&gt;
+  e.<span class="fn">waitUntil</span>(caches.<span class="fn">open</span>(CACHE).<span class="fn">then</span>(c =&gt; c.<span class="fn">addAll</span>(ASSETS)))
+);
+
+self.<span class="fn">addEventListener</span>(<span class="str">'fetch'</span>, e =&gt;
+  e.<span class="fn">respondWith</span>(caches.<span class="fn">match</span>(e.request).<span class="fn">then</span>(r =&gt; r || <span class="fn">fetch</span>(e.request)))
+);</div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">Smart Budget Analyzer &mdash; automatic needs vs wants classification:</p>
+    <div class="code-block"><span class="kw">const</span> NEEDS_CATS = [<span class="str">'Rent'</span>, <span class="str">'Food'</span>, <span class="str">'Health'</span>, <span class="str">'Bills & Utilities'</span>, <span class="str">'Education'</span>];
+<span class="kw">const</span> WANTS_CATS = [<span class="str">'Entertainment'</span>, <span class="str">'Shopping'</span>, <span class="str">'Transport'</span>, <span class="str">'Other'</span>];
+
+<span class="kw">const</span> needsPct = Math.<span class="fn">round</span>((needsAmt / income) * <span class="num">100</span>);
+<span class="kw">const</span> wantsPct = Math.<span class="fn">round</span>((wantsAmt / income) * <span class="num">100</span>);
+<span class="cm">// Ideal: needsPct &le; 50, wantsPct &le; 30, savingsRate &ge; 20</span></div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">AI Prediction &mdash; 3-month rolling average model:</p>
+    <div class="code-block"><span class="kw">const</span> last3Exp = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>].<span class="fn">map</span>(i =&gt; {
+  <span class="kw">const</span> d   = <span class="kw">new</span> <span class="fn">Date</span>(now.getFullYear(), now.getMonth() - i, <span class="num">1</span>);
+  <span class="kw">const</span> key = <span class="str">`${d.getFullYear()}-${...padStart(2,'0')}`</span>;
+  <span class="kw">return</span> transactions.<span class="fn">filter</span>(t =&gt; t.date.<span class="fn">startsWith</span>(key))
+                      .<span class="fn">reduce</span>((s, t) =&gt; s + t.amount, <span class="num">0</span>);
+}).<span class="fn">filter</span>(v =&gt; v &gt; <span class="num">0</span>);
+
+<span class="kw">const</span> predicted = Math.<span class="fn">round</span>(last3Exp.<span class="fn">reduce</span>((s,v) =&gt; s+v, <span class="num">0</span>) / last3Exp.length);</div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin:20px 0 12px">Smart Auto-Category &mdash; keyword AI engine:</p>
+    <div class="code-block"><span class="kw">function</span> <span class="fn">autoDetectCategory</span>() {
+  <span class="kw">const</span> desc   = document.<span class="fn">getElementById</span>(<span class="str">'descCustom'</span>).value.<span class="fn">toLowerCase</span>();
+  <span class="kw">const</span> typeEl = document.<span class="fn">getElementById</span>(<span class="str">'type'</span>);
+  <span class="kw">const</span> select = document.<span class="fn">getElementById</span>(<span class="str">'category'</span>);
+  <span class="kw">for</span> (<span class="kw">const</span> rule <span class="kw">of</span> KEYWORD_MAP) {
+    <span class="kw">if</span> (rule.keywords.<span class="fn">some</span>(kw =&gt; desc.<span class="fn">includes</span>(kw))) {
+      <span class="kw">if</span> (typeEl.value !== <span class="str">'expense'</span>) {
+        typeEl.value = <span class="str">'expense'</span>;  <span class="cm">// auto-switch type silently</span>
+        <span class="fn">populateCategories</span>();      <span class="cm">// refresh dropdown — desc untouched</span>
+      }
+      select.value = rule.category; <span class="cm">// set matched category</span>
+      <span class="fn">showToast</span>(<span class="str">`🤖 Category auto-detected: ${rule.category}`</span>);
+      <span class="kw">break</span>;
+    }
+  }
+}</div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="section" id="security">
+    <h2>&#128274; Security</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <span class="feature-emoji">&#128737;</span>
+        <div>
+          <h4>XSS Prevention</h4>
+          <p>All user inputs (desc, notes, category names) pass through escapeHtml() before rendering to DOM &mdash; prevents Cross-Site Scripting. Non-string values are cast via String() before escaping.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128272;</span>
+        <div>
+          <h4>No External Data Transfer</h4>
+          <p>All data stays in the user's browser localStorage. No servers, no analytics, no third-party requests &mdash; complete privacy.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#10003;</span>
+        <div>
+          <h4>Input Validation</h4>
+          <p>Amount must be a positive number, description is required, date is required &mdash; validated before any processing. CSV import validates each row individually.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128279;</span>
+        <div>
+          <h4>Safe URL Handling</h4>
+          <p>Blob URLs for CSV export are revoked immediately after download using URL.revokeObjectURL() &mdash; no memory leaks or dangling references.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128203;</span>
+        <div>
+          <h4>CSV Injection Prevention</h4>
+          <p>Export wraps all values in double quotes and escapes internal quotes &mdash; prevents formula injection attacks when the file is opened in Excel or Google Sheets.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128276;</span>
+        <div>
+          <h4>Permission-Based Notifications</h4>
+          <p>Browser Notifications only fire after explicit user permission. Denied state is handled gracefully without errors or repeated prompts.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW TO RUN -->
+  <section class="section" id="run">
+    <h2>&#9654; How to Run</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Step</th><th>Action</th></tr>
+        <tr><td>Option A &mdash; Direct</td><td>Double-click index.html &mdash; opens in any modern browser. Note: PWA/Service Worker require a server context.</td></tr>
+        <tr><td>Option B &mdash; Dev Server</td><td>Run <code>npx serve . -l 3000</code> in the project folder &rarr; open http://localhost:3000</td></tr>
+        <tr><td>Load Sample Data</td><td>Click the Sample button in the header &mdash; 14 transactions with notes and recurring flags across 2 months</td></tr>
+        <tr><td>Edit a Transaction</td><td>Click the edit icon on any transaction in history &rarr; edit modal opens with all fields</td></tr>
+        <tr><td>Edit Budget</td><td>Click any budget amount in the Budget Goals section &mdash; browser prompt appears</td></tr>
+        <tr><td>Import CSV</td><td>Click Import button &rarr; select a previously exported CSV file</td></tr>
+        <tr><td>Print Report</td><td>Click Print button &rarr; browser print dialog &rarr; save as PDF</td></tr>
+        <tr><td>Add Categories</td><td>Click Categories button &rarr; add custom income/expense categories in modal</td></tr>
+        <tr><td>Install as App</td><td>Open in Chrome or Edge &rarr; address bar install icon &rarr; Install / Add to home screen</td></tr>
+        <tr><td>Data Safety</td><td>Close browser &rarr; reopen &rarr; all data is still there (localStorage persistence)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section class="section" id="usecases">
+    <h2>&#127775; Who Should Use This</h2>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px">This dashboard is built for anyone who wants full control over their finances &mdash; without giving data to a third-party app.</p>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <span class="feature-emoji">&#127891;</span>
+        <div>
+          <h4>Students</h4>
+          <p>Track hostel rent, mess bills, course fees, and pocket money. Set savings goals for gadgets or trips. See exactly where the month&rsquo;s stipend or allowance went.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128188;</span>
+        <div>
+          <h4>Working Professionals</h4>
+          <p>Monitor salary vs monthly spend, track EMI impact, manage multiple expense categories, and use the Smart Budget Analyzer to see if savings rate is healthy.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128106;</span>
+        <div>
+          <h4>Families</h4>
+          <p>Track household bills and utilities. Set bill reminders for electricity, water, gas. Use the budget goals section to cap spending per category each month.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128200;</span>
+        <div>
+          <h4>Freelancers</h4>
+          <p>Irregular income? The balance trend chart shows net worth growth over time. AI prediction adjusts to your variable income months and flags when spending is too high relative to earnings.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128101;</span>
+        <div>
+          <h4>Tech Recruiters &amp; Evaluators</h4>
+          <p>A demonstration of full-stack frontend engineering &mdash; CRUD, data visualization, PWA, Service Worker, localStorage state management, CSV import/export, and AI features &mdash; all in pure HTML/CSS/JS.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128274;</span>
+        <div>
+          <h4>Privacy-Conscious Users</h4>
+          <p>Zero cloud, zero login, zero tracking. All data lives in your own browser. Close the tab, come back tomorrow &mdash; everything is exactly where you left it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUTURE SCOPE -->
+  <section class="section" id="future">
+    <h2>&#128640; Future Scope</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <span class="feature-emoji">&#9729;</span>
+        <div>
+          <h4>Cloud Sync</h4>
+          <p>Backend integration (Firebase / Supabase) to sync data across multiple devices &mdash; so data is not limited to one browser or one device.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#129302;</span>
+        <div>
+          <h4>Multi-Device Cloud Sync</h4>
+          <p>Sync data across devices via Firebase or Supabase backend &mdash; so transactions added on mobile appear on desktop automatically.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#127970;</span>
+        <div>
+          <h4>Bank Statement Import</h4>
+          <p>Auto-parse bank-exported CSV statements (HDFC, SBI, ICICI formats) and categorize transactions automatically using pattern matching.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-emoji">&#128202;</span>
+        <div>
+          <h4>Investment Tracker</h4>
+          <p>Track mutual funds, stocks, and FD/RD &mdash; separate from expense tracking. Show portfolio performance and net worth over time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="doc-footer">
+  Personal Finance Dashboard &nbsp;|&nbsp; May 2026
+</div>
+
+<script>
+  function scrollToSection(e, id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+  }
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('docThemeBtn').textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+  }
+  function toggleSidebar() {
+    const sidebar   = document.getElementById('sidebar');
+    const btn       = document.getElementById('sidebarToggle');
+    const backdrop  = document.getElementById('sidebarBackdrop');
+    const main      = document.querySelector('.main');
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    btn.classList.toggle('collapsed-btn', isCollapsed);
+    btn.innerHTML = isCollapsed ? '&#9654;' : '&#9664;';
+    btn.style.left = isCollapsed ? '0px' : '260px';
+    main.style.marginLeft = isCollapsed ? '0px' : '260px';
+    if (isCollapsed) {
+      backdrop.style.display = 'block';
+      setTimeout(() => backdrop.style.opacity = '0', 10);
+      setTimeout(() => { backdrop.style.display = 'none'; }, 320);
+    } else {
+      backdrop.style.display = 'block';
+      backdrop.style.opacity = '0';
+      setTimeout(() => backdrop.style.opacity = '0.45', 10);
+    }
+  }
+</script>
+</body>
+</html>
+
+

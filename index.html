@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Finance Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#00c2a8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">💰</span>
+      <div>
+        <h1>Finance Dashboard</h1>
+        <p class="subtitle">Your personal money manager</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="btn-icon" href="documentation.html" title="View Documentation">📄 Docs</a>
+      <button class="btn-icon btn-accent" onclick="loadSampleData()" title="Load Sample Data">✨ Sample</button>
+      <button class="btn-icon" onclick="exportCSV()" title="Export CSV">📥 Export</button>
+      <button class="btn-icon" onclick="triggerImport()" title="Import CSV">📤 Import</button>
+      <input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(event)" />
+      <button class="btn-icon" onclick="printReport()" title="Print Report">🖨️ Print</button>
+      <button class="btn-icon" onclick="openCategoryModal()" title="Manage Categories">⚙️ Categories</button>
+      <button class="btn-icon" onclick="openEmiModal()" title="EMI Calculator">🧮 EMI Calc</button>
+      <button class="btn-icon btn-danger" onclick="clearAll()" title="Clear All">🗑️ Clear All</button>
+      <button class="btn-icon" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙 Dark</button>
+    </div>
+  </header>
+
+  <!-- ── SUMMARY CARDS ──────────────────────────────── -->
+  <section class="summary-grid">
+    <div class="card card-income">
+      <div class="card-icon">💚</div>
+      <div>
+        <p class="card-label">Total Income</p>
+        <h2 class="card-value" id="totalIncome">₹0</h2>
+      </div>
+    </div>
+    <div class="card card-expense">
+      <div class="card-icon">❤️</div>
+      <div>
+        <p class="card-label">Total Expenses</p>
+        <h2 class="card-value" id="totalExpense">₹0</h2>
+      </div>
+    </div>
+    <div class="card card-balance">
+      <div class="card-icon">💎</div>
+      <div>
+        <p class="card-label">Net Balance</p>
+        <h2 class="card-value" id="netBalance">₹0</h2>
+      </div>
+    </div>
+    <div class="card card-savings">
+      <div class="card-icon">🎯</div>
+      <div>
+        <p class="card-label">Savings Rate</p>
+        <h2 class="card-value" id="savingsRate">0%</h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINANCIAL HEALTH SCORE ──────────────────────── -->
+  <section class="health-section">
+    <div class="health-left">
+      <h3>🏆 Financial Health Score</h3>
+      <p class="health-sub" id="healthLabel">Add transactions to calculate your score</p>
+    </div>
+    <div class="health-bar-wrap">
+      <div class="health-bar">
+        <div class="health-fill" id="healthFill" style="width:0%"></div>
+      </div>
+      <div class="health-markers">
+        <span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span>
+      </div>
+    </div>
+    <div class="health-score-box">
+      <span class="health-score" id="healthScore">0</span>
+      <span class="health-score-max">/100</span>
+    </div>
+  </section>
+
+  <!-- ── CHARTS ROW ─────────────────────────────────── -->
+  <section class="charts-row">
+    <div class="chart-card">
+      <h3>💸 Income vs Expense</h3>
+      <div class="chart-wrapper">
+        <canvas id="doughnutChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>📅 Monthly Trend</h3>
+      <div class="chart-wrapper">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>🗂️ Category Breakdown</h3>
+      <div class="chart-wrapper">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>📈 Balance Trend</h3>
+      <div class="chart-wrapper">
+        <canvas id="balanceChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MONTHLY / YEARLY SUMMARY TABLE ──────────────── -->
+  <section class="monthly-section">
+    <div class="monthly-header">
+      <h3 id="summaryTitle">📆 Monthly Summary</h3>
+      <div class="view-toggle">
+        <button class="toggle-btn active" id="btnMonthly" onclick="switchView('monthly')">Monthly</button>
+        <button class="toggle-btn" id="btnYearly" onclick="switchView('yearly')">Yearly</button>
+      </div>
+    </div>
+    <div class="monthly-table-wrap">
+      <table class="monthly-table" id="monthlyTable">
+        <thead>
+          <tr>
+            <th id="periodHeader">Month</th>
+            <th>Income</th>
+            <th>Expenses</th>
+            <th>Savings</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyTableBody">
+          <tr><td colspan="5" class="empty-msg" style="padding:20px">Add transactions to see summary.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SMART INSIGHTS ───────────────────────────────── -->
+  <section class="insights-section">
+    <h3>🤖 Smart Insights</h3>
+    <div class="insights-grid" id="insightsGrid">
+      <p class="empty-msg">Add transactions to see AI-powered insights.</p>
+    </div>
+  </section>
+
+  <!-- ── BUDGET GOALS ───────────────────────────────── -->
+  <section class="budget-section">
+    <div class="budget-header">
+      <h3>🎯 Budget Goals</h3>
+      <span class="budget-tip">💡 Click on limit to edit it</span>
+    </div>
+    <div class="budget-grid" id="budgetGrid">
+      <!-- dynamically filled -->
+    </div>
+  </section>
+
+  <!-- ── SAVINGS GOALS ──────────────────────────────── -->
+  <section class="goals-section">
+    <div class="goals-header">
+      <h3>🎯 Savings Goals</h3>
+      <button class="btn-add-reminder" onclick="toggleGoalForm()">+ Add Goal</button>
+    </div>
+    <div class="goal-form" id="goalForm" style="display:none">
+      <input type="text" id="goalName" placeholder="e.g. New Laptop, Vacation..." />
+      <input type="number" id="goalTarget" placeholder="Target (₹)" min="1" />
+      <input type="date" id="goalDeadline" />
+      <button onclick="addGoal()">Add</button>
+    </div>
+    <div class="goals-list" id="goalsList">
+      <p class="empty-msg">No goals set. Add a savings goal to track your progress!</p>
+    </div>
+  </section>
+
+  <!-- ── BILL REMINDERS ─────────────────────────────── -->
+  <section class="reminders-section">
+    <div class="reminders-header">
+      <h3>🔔 Bill Reminders</h3>
+      <button class="btn-add-reminder" onclick="toggleReminderForm()">+ Add Reminder</button>
+    </div>
+    <div class="reminder-form" id="reminderForm" style="display:none">
+      <select id="reminderTitle" onchange="handleReminderTitleSelect(this)">
+        <option value="">-- Select Bill --</option>
+        <option>Electricity Bill</option>
+        <option>Water Bill</option>
+        <option>Gas Bill</option>
+        <option>Internet Bill</option>
+        <option>Mobile Recharge</option>
+        <option>Rent</option>
+        <option>Credit Card Payment</option>
+        <option>Insurance Premium</option>
+        <option>Netflix / OTT</option>
+        <option>Gym Membership</option>
+        <option value="__custom__">+ Custom...</option>
+      </select>
+      <input type="text" id="reminderTitleCustom" placeholder="Enter bill name" style="display:none; flex:1" />
+      <input type="number" id="reminderAmount" placeholder="Amount (₹)" min="1" />
+      <input type="date" id="reminderDate" />
+      <button onclick="addReminder()">Add</button>
+    </div>
+    <div class="reminders-list" id="remindersList">
+      <p class="empty-msg">No reminders set. Add upcoming bills!</p>
+    </div>
+  </section>
+
+  <!-- ── ADD TRANSACTION + HISTORY ─────────────────── -->
+  <section class="bottom-row">
+
+    <!-- Add Transaction Form -->
+    <div class="form-card">
+      <h3>➕ Add Transaction</h3>
+      <form id="transactionForm" onsubmit="addTransaction(event)">
+        <div class="form-group">
+          <label>Description</label>
+          <select id="desc" onchange="handleDescSelect(this)"></select>
+          <input type="text" id="descCustom" placeholder="Enter description..." style="display:none; margin-top:6px" oninput="autoDetectCategory()" />
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="amount" placeholder="0" min="1" required />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="type">
+            <option value="income">💚 Income</option>
+            <option value="expense">❤️ Expense</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="category">
+            <!-- filled by JS based on type -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="date" required />
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <textarea id="notes" placeholder="Add any extra detail..." rows="2"></textarea>
+        </div>
+        <div class="form-group recurring-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="recurring" />
+            <span>🔁 Recurring (auto-adds every month)</span>
+          </label>
+        </div>
+        <button type="submit" class="btn-add">Add Transaction</button>
+      </form>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="history-card">
+      <div class="history-header">
+        <h3>📋 Transaction History</h3>
+        <div class="history-controls">
+          <input type="text" id="searchInput" placeholder="🔍 Search..." oninput="renderHistory()" />
+          <select id="filterType" onchange="renderHistory()">
+            <option value="all">All</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select id="sortOrder" onchange="renderHistory()" title="Sort by">
+            <option value="newest">↓ Newest</option>
+            <option value="oldest">↑ Oldest</option>
+            <option value="highest">↓ Highest</option>
+            <option value="lowest">↑ Lowest</option>
+          </select>
+        </div>
+      </div>
+      <div class="date-filter-row">
+        <button class="date-preset active" onclick="setDatePreset('all',this)">All</button>
+        <button class="date-preset" onclick="setDatePreset('today',this)">Today</button>
+        <button class="date-preset" onclick="setDatePreset('week',this)">This Week</button>
+        <button class="date-preset" onclick="setDatePreset('month',this)">This Month</button>
+        <button class="date-preset" onclick="setDatePreset('lastmonth',this)">Last Month</button>
+        <button class="date-preset" onclick="setDatePreset('custom',this)">Custom</button>
+      </div>
+      <div class="custom-date-row" id="customDateRow" style="display:none">
+        <input type="date" id="dateFrom" onchange="renderHistory()" />
+        <span>to</span>
+        <input type="date" id="dateTo" onchange="renderHistory()" />
+      </div>
+      <div class="history-list" id="historyList">
+        <p class="empty-msg">No transactions yet. Add one! 👆</p>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="footer">
+    Personal Finance Dashboard &nbsp;|&nbsp; May 2026
+  </footer>
+
+  <!-- ── EDIT MODAL ─────────────────────────────────── -->
+  <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>✏️ Edit Transaction</h3>
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <form id="editForm" onsubmit="saveEdit(event)">
+        <input type="hidden" id="editId" />
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="editDesc" required />
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="editAmount" min="1" required />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="editType" onchange="populateEditCategories()">
+            <option value="income">💚 Income</option>
+            <option value="expense">❤️ Expense</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="editCategory"></select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="editDate" required />
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <textarea id="editNotes" rows="2"></textarea>
+        </div>
+        <div class="form-group recurring-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="editRecurring" />
+            <span>🔁 Recurring (monthly)</span>
+          </label>
+        </div>
+        <button type="submit" class="btn-add">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── CUSTOM CATEGORIES MODAL ──────────────────── -->
+  <div class="modal-overlay" id="categoryModal" onclick="closeCategoryModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚙️ Manage Categories</h3>
+        <button class="modal-close" onclick="closeCategoryModal()">✕</button>
+      </div>
+      <div class="cat-section">
+        <h4>💚 Income Categories</h4>
+        <div class="cat-list" id="incomeCatList"></div>
+        <div class="cat-add-row">
+          <input type="text" id="newIncomeCat" placeholder="New income category..." />
+          <button onclick="addCategory('income')">Add</button>
+        </div>
+      </div>
+      <div class="cat-section">
+        <h4>❤️ Expense Categories</h4>
+        <div class="cat-list" id="expenseCatList"></div>
+        <div class="cat-add-row">
+          <input type="text" id="newExpenseCat" placeholder="New expense category..." />
+          <button onclick="addCategory('expense')">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCROLL TO TOP ─────────────────────────────── -->
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+  <!-- ── EMI CALCULATOR MODAL ──────────────────────── -->
+  <div class="modal-overlay" id="emiModal" onclick="closeEmiModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🧮 EMI Calculator</h3>
+        <button class="modal-close" onclick="closeEmiModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Loan Amount (₹)</label>
+        <input type="number" id="emiLoan" placeholder="e.g. 500000" min="1" oninput="calcEmi()" />
+      </div>
+      <div class="form-group">
+        <label>Annual Interest Rate (%)</label>
+        <input type="number" id="emiRate" placeholder="e.g. 8.5" min="0.1" step="0.1" oninput="calcEmi()" />
+      </div>
+      <div class="form-group">
+        <label>Tenure (Months)</label>
+        <input type="number" id="emiTenure" placeholder="e.g. 24" min="1" oninput="calcEmi()" />
+      </div>
+      <div class="emi-result" id="emiResult" style="display:none">
+        <div class="emi-row"><span>Monthly EMI</span><strong id="emiMonthly"></strong></div>
+        <div class="emi-row"><span>Total Payable</span><strong id="emiTotal"></strong></div>
+        <div class="emi-row emi-interest"><span>Total Interest</span><strong id="emiInterest"></strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
